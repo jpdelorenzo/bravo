@@ -134,6 +134,8 @@ module Bravo
 
       result          = response[:fecae_solicitar_response][:fecae_solicitar_result]
 
+      errors_result   = result[:errors]
+
       response_header = result[:fe_cab_resp]
       response_detail = result[:fe_det_resp][:fecae_det_response]
 
@@ -154,7 +156,8 @@ module Bravo
                         :moneda        => request_detail.delete(:mon_id),
                         :cotizacion    => request_detail.delete(:mon_cotiz),
                         :iva_base_imp  => request_detail.delete(:base_imp),
-                        :doc_num       => request_detail.delete(:doc_nro)
+                        :doc_num       => request_detail.delete(:doc_nro),
+                        :errors        => errors_result
                         }.merge!(request_header).merge!(request_detail)
 
       keys, values  = response_hash.to_a.transpose
