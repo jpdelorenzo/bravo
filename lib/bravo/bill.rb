@@ -11,7 +11,7 @@ module Bravo
 
     attr_accessor :net, :document_number, :iva_condition, :document_type, :concept,
       :currency, :due_date, :aliciva_id, :date_from, :date_to, :body, :response,
-      :invoice_type
+      :invoice_type, :bill_number
 
     def initialize(attrs = {})
       opts = { wsdl: Bravo::AuthData.wsfe_url }.merge! Bravo.logger_options
@@ -22,6 +22,7 @@ module Bravo
       @document_type  = attrs[:document_type] || Bravo.default_documento
       @currency       = attrs[:currency]      || Bravo.default_moneda
       @concept        = attrs[:concept]       || Bravo.default_concepto
+      @bill_number    = attrs[:bill_number]   || 0
       @invoice_type   = validate_invoice_type(attrs[:invoice_type])
     end
 
@@ -96,7 +97,8 @@ module Bravo
       detail['ImpNeto']   = net.to_f
       detail['ImpIVA']    = iva_sum
       detail['ImpTotal']  = total
-      detail['CbteDesde'] = detail['CbteHasta'] = Bravo::Reference.next_bill_number(bill_type)
+      detail['CbteDesde'] = detail['CbteHasta'] =
+              @bill_number > 0 ? @bill_number : Bravo::Reference.next_bill_number(bill_type)
 
       unless concept == 0
         detail.merge!({ 'FchServDesde'  => date_from  || today,
