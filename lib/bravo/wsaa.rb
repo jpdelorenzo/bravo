@@ -44,7 +44,7 @@ EOF
     #
     def self.build_cms(tra)
       cms = `echo '#{ tra }' |
-        #{ Bravo.openssl_bin } cms -sign -in /dev/stdin -signer #{ Bravo.cert } -inkey #{ Bravo.pkey } -nodetach \
+        #{ Bravo.openssl_bin } cms -sign -in /dev/stdin -signer #{ fetch_remote_file(Bravo.cert) } -inkey #{ fetch_remote_file(Bravo.pkey) } -nodetach \
                 -outform der |
         #{ Bravo.openssl_bin } base64 -e`
       return cms
@@ -92,5 +92,17 @@ YML
     `echo '#{ yml }' > /tmp/bravo_#{ Bravo.cuit }_#{ Time.new.strftime('%Y_%m_%d') }.yml`
     end
 
+    require 'open-uri'
+
+    def self.fetch_remote_file(url_string)
+      data = URI.parse(url_string).read
+      Tempfile.new.tap do |file|
+        file.binmode
+        file.write(data)
+        file.close
+      end.path
+    rescue
+      url_string
+    end
   end
 end

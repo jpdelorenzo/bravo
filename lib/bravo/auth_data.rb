@@ -6,6 +6,8 @@ module Bravo
 
     class << self
 
+      require 'net/http'
+
       attr_accessor :environment, :todays_data_file_name
 
       # Fetches WSAA Authorization Data to build the datafile for the day.
@@ -13,11 +15,11 @@ module Bravo
       # to be configured as Bravo.pkey and Bravo.cert
       #
       def fetch
-        unless File.exists?(Bravo.pkey)
+        unless File.exists?(Bravo.pkey) || url_exist?(Bravo.pkey)
           raise "Archivo de llave privada no encontrado en #{ Bravo.pkey }"
         end
 
-        unless File.exists?(Bravo.cert)
+        unless File.exists?(Bravo.cert) || url_exist?(Bravo.cert)
           raise "Archivo certificado no encontrado en #{ Bravo.cert }"
         end
 
@@ -59,6 +61,19 @@ module Bravo
       #
       def todays_data_file_name
         @todays_data_file ||= "/tmp/bravo_#{ Bravo.cuit }_#{ Time.new.strftime('%Y_%m_%d') }.yml"
+      end
+
+      private
+
+      def url_exist?(url_string)
+        url = URI.parse(url_string)
+        req = Net::HTTP.new(url.host, url.port)
+        req.use_ssl = (url.scheme == 'https')
+        path = url.path if url.path.present?
+        res = req.request_head(path || '/')
+        res.code != "404" # false if returns 404 - not found
+      rescue Errno::ENOENT
+        false # false if can't find the server
       end
     end
   end
