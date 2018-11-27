@@ -15,6 +15,20 @@ module Bravo
       resp.to_hash[:fe_comp_ultimo_autorizado_response][:fe_comp_ultimo_autorizado_result][:cbte_nro].to_i + 1
     end
 
+    # Check if a bill was issued
+    # @return [Hash] with the bill data
+    #
+
+    def self.check_invoice(cbte_type, cbte_nro)
+      set_client
+      request_data = { 'PtoVta' => Bravo.sale_point, 'CbteTipo' => cbte_type, 'CbteNro' => cbte_nro }
+      resp = @client.call(:fe_comp_consultar) do |soap|
+        soap.message 'Auth' => Bravo::AuthData.auth_hash, 'FeCompConsReq' => request_data
+      end
+
+      resp.to_hash[:fe_comp_consultar_response][:fe_comp_consultar_result]
+    end
+
     # Fetches the possible document codes and names
     # @return [Hash]
     #
