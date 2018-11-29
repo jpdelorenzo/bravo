@@ -14,6 +14,10 @@ module Bravo
     '07'=>'Nota de Debito B',
     '08'=>'Nota de Credito B',
     '09'=>'Recibos B',
+    '11'=>'Factura C',
+    '12'=>'Nota de Débito C',
+    '13'=>'Nota de Crédito C',
+    '15'=>'Recibos C',
     '10'=>'Notas de Venta al contado B',
     '34'=>'Cbtes. A del Anexo I, Apartado A,inc.f),R.G.Nro. 1415',
     '35'=>'Cbtes. B del Anexo I,Apartado A,inc. f),R.G. Nro. 1415',
@@ -62,13 +66,26 @@ module Bravo
   # Applicable tax according to buyer and seller's iva condition.
   #
   APPLICABLE_IVA = {
-    :responsable_inscripto => {
+    responsable_inscripto:  {
       responsable_inscripto: 02,
+      consumidor_final: 00,
+      exento: 00,
+      responsable_monotributo: 00
+    },
+    exento: {
+      responsable_inscripto: 00,
+      consumidor_final: 00,
+      exento: 00,
+      responsable_monotributo: 00
+    },
+    responsable_monotributo: {
+      responsable_inscripto: 00,
       consumidor_final: 00,
       exento: 00,
       responsable_monotributo: 00
     }
   }
+
 
   # This hash keeps the codes for A document types by operation
   #
@@ -77,12 +94,20 @@ module Bravo
     :debit   => '02',
     :credit  => '03' }
 
-  # This hash keeps the codes for A document types by operation
+  # This hash keeps the codes for B document types by operation
   #
   BILL_TYPE_B = {
     :invoice => '06',
     :debit   => '07',
     :credit  => '08' }
+
+  # This hash keeps the codes for C document types by operation
+  #
+  BILL_TYPE_C = {
+    invoice: '11',
+    debit:   '12',
+    credit:  '13'
+  }
 
   # This hash keeps the different buyer and invoice type mapping corresponding to
   # the seller's iva condition and invoice kind.
@@ -91,11 +116,23 @@ module Bravo
   #   `BILL_TYPE[:responsable_inscripto][:responsable_inscripto][:invoice]` #=> '01'
   #
   BILL_TYPE = {
-    :responsable_inscripto => {
-      :responsable_inscripto    => BILL_TYPE_A,
-      :consumidor_final         => BILL_TYPE_B,
-      :exento                   => BILL_TYPE_B,
-      :responsable_monotributo  => BILL_TYPE_B } }
+    responsable_inscripto: {
+      responsable_inscripto:   BILL_TYPE_A,
+      consumidor_final:        BILL_TYPE_B,
+      exento:                  BILL_TYPE_B,
+      responsable_monotributo: BILL_TYPE_B },
+    exento: {
+      responsable_inscripto:   BILL_TYPE_C,
+      consumidor_final:        BILL_TYPE_C,
+      exento:                  BILL_TYPE_C,
+      responsable_monotributo: BILL_TYPE_C },
+    responsable_monotributo: {
+      responsable_inscripto:   BILL_TYPE_C,
+      consumidor_final:        BILL_TYPE_C,
+      exento:                  BILL_TYPE_C,
+      responsable_monotributo: BILL_TYPE_C
+    }
+  }
 
   # This hash keeps the set of urls for wsaa and wsfe for production and testing envs
   #

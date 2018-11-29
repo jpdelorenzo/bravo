@@ -67,6 +67,10 @@ module Bravo
       self.authorized?
     end
 
+    def invoice_c?
+      Bravo::BILL_TYPE_C.values.include? Bravo::BILL_TYPE[Bravo.own_iva_cond][iva_condition][invoice_type]
+    end
+
     # Sets up the request body for the authorisation
     # @return [Hash] returns the request body as a hash
     #
@@ -95,7 +99,11 @@ module Bravo
 
       detail['DocNro']    = document_number
       detail['ImpNeto']   = net.to_f
-      detail['ImpIVA']    = iva_sum
+      if invoice_c?
+        fecaereq['FeCAEReq']['FeDetReq']['FECAEDetRequest'].delete('Iva')
+      else
+        detail['ImpIVA']    = iva_sum
+      end
       detail['ImpTotal']  = total
       detail['CbteDesde'] = detail['CbteHasta'] =
               @bill_number > 0 ? @bill_number : Bravo::Reference.next_bill_number(bill_type)
@@ -104,6 +112,19 @@ module Bravo
         detail.merge!({ 'FchServDesde'  => date_from  || today,
                         'FchServHasta'  => date_to    || today,
                         'FchVtoPago'    => due_date   || today })
+      end
+
+      if Bravo.own_iva_cond == 'exento'
+        detail.merge!({ 'Opcionales' => [{
+                          'Opcional' => {
+                            'Id'    => '10',
+                            'Valor' => '1'} }, {
+                          'Opcional' => {
+                            'Id'    => '1011',
+                            'Valor' => Bravo::DOCUMENTOS[document_type]} }, {
+                          'Opcional' => {
+                            'Id'    => '1012',
+                            'Valor' => document_number} } ] })
       end
 
       body.merge!(fecaereq)
@@ -144,9 +165,8 @@ module Bravo
       request_header  = body['FeCAEReq']['FeCabReq'].underscore_keys.symbolize_keys
       request_detail  = body['FeCAEReq']['FeDetReq']['FECAEDetRequest'].underscore_keys.symbolize_keys
 
-      iva             = request_detail.delete(:iva)['AlicIva'].underscore_keys.symbolize_keys
 
-      request_detail.merge!(iva)
+      request_detail.merge!(request_detail.delete(:iva)['AlicIva'].underscore_keys.symbolize_keys) if !invoice_c?
 
       response_hash = { :header_result => response_header.delete(:resultado),
                         :authorized_on => response_header.delete(:fch_proceso),
