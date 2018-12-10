@@ -141,5 +141,5 @@ module Bravo
                :wsfe => 'https://wswhomo.afip.gov.ar/wsfev1/service.asmx?WSDL' },
 
     :production => { :wsaa => 'https://wsaa.afip.gov.ar/ws/services/LoginCms',
-                     :wsfe => 'https://servicios1.afip.gov.ar/wsfev1/service.asmx' } }
+                     :wsfe => 'https://servicios1.afip.gov.ar/wsfev1/service.asmx?wsdl' } }
 end
