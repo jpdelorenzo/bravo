@@ -8,7 +8,7 @@ module Bravo
 
       require 'net/http'
 
-      attr_accessor :environment, :todays_data_file_name
+      attr_accessor :environment
 
       # Fetches WSAA Authorization Data to build the datafile for the day.
       # It requires the private key file and the certificate to exist and
@@ -28,7 +28,7 @@ module Bravo
         end
 
         YAML.load_file(todays_data_file_name).each do |k, v|
-          Bravo.const_set(k.to_s.upcase, v) unless Bravo.const_defined?(k.to_s.upcase)
+          Bravo.const_set(k.to_s.upcase, v)
         end
       end
 
@@ -36,7 +36,7 @@ module Bravo
       # @return [Hash]
       #
       def auth_hash
-        fetch unless Bravo.constants.include?(:TOKEN) && Bravo.constants.include?(:SIGN)
+        fetch
         { 'Token' => Bravo::TOKEN, 'Sign'  => Bravo::SIGN, 'Cuit'  => Bravo.cuit }
       end
 
@@ -60,7 +60,7 @@ module Bravo
       # @return [String]
       #
       def todays_data_file_name
-        @todays_data_file ||= "/tmp/bravo_#{ Bravo.cuit }_#{ Time.new.strftime('%Y_%m_%d') }.yml"
+        "/tmp/bravo_#{ Bravo.cuit }_#{ Time.new.strftime('%Y_%m_%d') }.yml"
       end
 
       private
