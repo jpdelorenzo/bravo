@@ -77,6 +77,10 @@ XML
         curl -k -s -H 'Content-Type: application/soap+xml; action=""' -d @- #{ Bravo::AuthData.wsaa_url }`
 
       response = CGI::unescapeHTML(response)
+
+      expired_cert = response.downcase.scan(/certificado expirado/)
+      raise "Certificado expirado" if expired_cert.present? && expired_cert.first.present?
+
       token = response.scan(/\<token\>(.+)\<\/token\>/).first.first
       sign  = response.scan(/\<sign\>(.+)\<\/sign\>/).first.first
       return [token, sign]
