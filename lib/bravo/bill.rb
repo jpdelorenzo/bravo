@@ -71,6 +71,10 @@ module Bravo
       Bravo::BILL_TYPE_C.values.include? Bravo::BILL_TYPE[Bravo.own_iva_cond][iva_condition][invoice_type]
     end
 
+    def invoice_b?
+      Bravo::BILL_TYPE_B.values.include? Bravo::BILL_TYPE[Bravo.own_iva_cond][iva_condition][invoice_type]
+    end
+
     # Sets up the request body for the authorisation
     # @return [Hash] returns the request body as a hash
     #
@@ -99,7 +103,7 @@ module Bravo
 
       detail['DocNro']    = document_number
       detail['ImpNeto']   = net.to_f
-      if invoice_c?
+      if invoice_c? || invoice_b? # HOT FIX: Delete iva on Facturas B for Tierra del fuego customers
         fecaereq['FeCAEReq']['FeDetReq']['FECAEDetRequest'].delete('Iva')
       else
         detail['ImpIVA']    = iva_sum
