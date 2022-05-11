@@ -48,7 +48,8 @@ module Bravo
     #
     # TODO: fix this
     #
-    def iva_sum
+    def iva_sum(invoice_b = false)
+      return 0 if invoice_b  # HOT FIX: Force no iva on Facturas B for Tierra del fuego customers, noone else is using it
       @iva_sum = net * applicable_iva_multiplier
       @iva_sum.round(2)
     end
@@ -103,8 +104,14 @@ module Bravo
 
       detail['DocNro']    = document_number
       detail['ImpNeto']   = net.to_f
-      if invoice_c? || invoice_b? # HOT FIX: Delete iva on Facturas B for Tierra del fuego customers
+      if invoice_c?
         fecaereq['FeCAEReq']['FeDetReq']['FECAEDetRequest'].delete('Iva')
+      elsif invoice_b? # HOT FIX: Force no iva on Facturas B for Tierra del fuego customers, noone else is using it
+        fecaereq['FeCAEReq']['FeDetReq']['FECAEDetRequest']['Iva']['AlicIva'] = {
+          'Id' => Bravo::ALIC_IVA[Bravo::APPLICABLE_IVA[:responsable_inscripto][:exento]][0],
+          'BaseImp' => net.round(2),
+          'Importe' => iva_sum(invoice_b?)
+        }
       else
         detail['ImpIVA']    = iva_sum
       end
