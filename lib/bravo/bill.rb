@@ -22,7 +22,7 @@ module Bravo
       @document_type  = attrs[:document_type] || Bravo.default_documento
       @currency       = attrs[:currency]      || Bravo.default_moneda
       @concept        = attrs[:concept]       || Bravo.default_concepto
-      @bill_number    = attrs[:bill_number]   || 0
+      @bill_number    = attrs[:bill_number]   || 1
       @invoice_type   = validate_invoice_type(attrs[:invoice_type])
     end
 
