@@ -81,9 +81,16 @@ XML
       expired_cert = response.downcase.scan(/certificado expirado/)
       raise "Certificado expirado" if expired_cert.present? && expired_cert.first.present?
 
-      token = response.scan(/\<token\>(.+)\<\/token\>/).first.first
-      sign  = response.scan(/\<sign\>(.+)\<\/sign\>/).first.first
-      return [token, sign]
+      interal_error = response.downcase.scan(/internalError/)
+      raise "Error interno AFIP" if interal_error.present? && interal_error.first.present?
+
+      begin
+        token = response.scan(/\<token\>(.+)\<\/token\>/).first.first
+        sign  = response.scan(/\<sign\>(.+)\<\/sign\>/).first.first
+        return [token, sign]
+      rescue
+        raise "No se pudo authenticar"
+      end
     end
 
     # Writes the token and signature to a YAML file in the /tmp directory
