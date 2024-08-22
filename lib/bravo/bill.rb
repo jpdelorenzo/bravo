@@ -125,6 +125,7 @@ module Bravo
           'Importe' => iva
         }
         detail['ImpIVA'] = iva
+        detail['ImpNeto']   = net_without_iva.round(2)
       end
       detail['ImpTotal'] = net
       detail['CbteDesde'] = detail['CbteHasta'] =
