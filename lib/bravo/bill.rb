@@ -22,7 +22,7 @@ module Bravo
       @document_type  = attrs[:document_type] || Bravo.default_documento
       @currency       = attrs[:currency]      || Bravo.default_moneda
       @concept        = attrs[:concept]       || Bravo.default_concepto
-      @tierra_del_fuego = attrs[:tierra_del_fuego]
+      @tierra_del_fuego = Bravo.tierra_del_fuego
       @bill_number    = attrs[:bill_number]   || 1
       @invoice_type   = validate_invoice_type(attrs[:invoice_type])
     end
