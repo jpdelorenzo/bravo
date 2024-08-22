@@ -11,7 +11,7 @@ module Bravo
 
     attr_accessor :net, :document_number, :iva_condition, :document_type, :concept,
       :currency, :due_date, :aliciva_id, :date_from, :date_to, :body, :response,
-      :invoice_type, :bill_number
+      :invoice_type, :bill_number, :tierra_del_fuego
 
     def initialize(attrs = {})
       opts = { wsdl: Bravo::AuthData.wsfe_url, ssl_ciphers: "DEFAULT:!DH" }.merge! Bravo.logger_options
@@ -22,6 +22,7 @@ module Bravo
       @document_type  = attrs[:document_type] || Bravo.default_documento
       @currency       = attrs[:currency]      || Bravo.default_moneda
       @concept        = attrs[:concept]       || Bravo.default_concepto
+      @tierra_del_fuego = attrs[:tierra_del_fuego]
       @bill_number    = attrs[:bill_number]   || 1
       @invoice_type   = validate_invoice_type(attrs[:invoice_type])
     end
@@ -48,8 +49,7 @@ module Bravo
     #
     # TODO: fix this
     #
-    def iva_sum(invoice_b = false)
-      return 0 if invoice_b  # HOT FIX: Force no iva on Facturas B for Tierra del fuego customers, noone else is using it
+    def iva_sum(without_iva = false)
       @iva_sum = net * applicable_iva_multiplier
       @iva_sum.round(2)
     end
@@ -74,6 +74,10 @@ module Bravo
 
     def invoice_b?
       Bravo::BILL_TYPE_B.values.include? Bravo::BILL_TYPE[Bravo.own_iva_cond][iva_condition][invoice_type]
+    end
+
+    def tierra_del_fuego?
+      @tierra_del_fuego.present?
     end
 
     # Sets up the request body for the authorisation
@@ -106,16 +110,23 @@ module Bravo
       detail['ImpNeto']   = net.to_f
       if invoice_c?
         fecaereq['FeCAEReq']['FeDetReq']['FECAEDetRequest'].delete('Iva')
-      elsif invoice_b? # HOT FIX: Force no iva on Facturas B for Tierra del fuego customers, noone else is using it
+      elsif tierra_del_fuego? # HOT FIX: Force no iva on Facturas B for Tierra del fuego customers, noone else is using it
         fecaereq['FeCAEReq']['FeDetReq']['FECAEDetRequest']['Iva']['AlicIva'] = {
-          'Id' => Bravo::ALIC_IVA[Bravo::APPLICABLE_IVA[:responsable_inscripto][:exento]][0],
+          'Id' => '03',
           'BaseImp' => net.round(2),
-          'Importe' => iva_sum(invoice_b?)
+          'Importe' => 0
         }
       else
-        detail['ImpIVA']    = iva_sum
+        net_without_iva = (net / 1.21).round(2)
+        iva = (net - net_without_iva).round(2)
+        fecaereq['FeCAEReq']['FeDetReq']['FECAEDetRequest']['Iva']['AlicIva'] = {
+          'Id' => Bravo::ALIC_IVA[Bravo::APPLICABLE_IVA[:responsable_inscripto][:exento]][0],
+          'BaseImp' => net_without_iva,
+          'Importe' => iva
+        }
+        detail['ImpIVA'] = iva
       end
-      detail['ImpTotal']  = total
+      detail['ImpTotal'] = net
       detail['CbteDesde'] = detail['CbteHasta'] =
               @bill_number > 0 ? @bill_number : Bravo::Reference.next_bill_number(bill_type)
 

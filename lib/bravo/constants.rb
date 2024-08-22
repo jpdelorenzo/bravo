@@ -68,9 +68,9 @@ module Bravo
   APPLICABLE_IVA = {
     responsable_inscripto:  {
       responsable_inscripto: 02,
-      consumidor_final: 00,
-      exento: 00,
-      responsable_monotributo: 00
+      consumidor_final: 02,
+      exento: 02,
+      responsable_monotributo: 02
     },
     exento: {
       responsable_inscripto: 00,
