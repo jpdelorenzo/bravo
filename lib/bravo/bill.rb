@@ -207,7 +207,7 @@ module Bravo
 
       keys, values  = response_hash.to_a.transpose
 
-      self.response = (defined?(Struct::Response) ? Struct::Response : Struct.new('Response', *keys)).new(*values)
+      self.response = Struct.new('Response', *keys).new(*values)
     end
 
     def applicable_iva
